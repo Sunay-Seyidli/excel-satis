@@ -1,39 +1,55 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const PORT = process.env.PORT || 3000;
-const DATA_FILE = path.join(__dirname, 'data.txt');
+const MONGO_URI = 'mongodb+srv://sunayseyidli01_db_user:HIPElclZuiSHhsla@cluster0.4mmuitx.mongodb.net/?retryWrites=true&w=majority';
+const DB_NAME = 'excel_satis';
+const COLLECTION_NAME = 'satislar';
 
-// data.txt yoxdursa yarat
-if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, '', 'utf-8');
+const client = new MongoClient(MONGO_URI, {
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
+});
+
+async function connectDB() {
+    try {
+        await client.connect();
+        await client.db("admin").command({ ping: 1 });
+        console.log('✅ MongoDB-ə qoşuldu');
+    } catch(e) {
+        console.error('❌ MongoDB xətası:', e.message);
+        process.exit(1);
+    }
 }
 
-// Məlumatları oxu
-function getData() {
+async function getData() {
     try {
-        const raw = fs.readFileSync(DATA_FILE, 'utf-8').trim();
-        if (!raw) return [];
-        return raw.split('\n')
-            .filter(line => line.trim())
-            .map(line => {
-                try { return JSON.parse(line); }
-                catch(e) { return null; }
-            })
-            .filter(item => item !== null);
+        const db = client.db(DB_NAME);
+        const collection = db.collection(COLLECTION_NAME);
+        return await collection.find({}).sort({ _id: -1 }).toArray();
     } catch(e) {
+        console.error('Oxuma xətası:', e.message);
         return [];
     }
 }
 
-// Məlumat əlavə et
-function appendData(obj) {
-    fs.appendFileSync(DATA_FILE, JSON.stringify(obj) + '\n', 'utf-8');
+async function appendData(obj) {
+    try {
+        const db = client.db(DB_NAME);
+        const collection = db.collection(COLLECTION_NAME);
+        return await collection.insertOne(obj);
+    } catch(e) {
+        console.error('Yazma xətası:', e.message);
+        return null;
+    }
 }
 
-const server = http.createServer((req, res) => {
-    // CORS başlıqları
+const server = http.createServer(async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -43,35 +59,39 @@ const server = http.createServer((req, res) => {
         return res.end();
     }
 
-    // API - Bütün məlumatları gətir
     if (req.url === '/api/data' && req.method === 'GET') {
-        const data = getData();
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify(data));
+        try {
+            const data = await getData();
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify(data));
+        } catch(e) {
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: 'Server xətası' }));
+        }
+        return;
     }
 
-    // API - Yeni məlumat əlavə et
     if (req.url === '/api/data' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
-        req.on('end', () => {
+        req.on('end', async () => {
             try {
                 const obj = JSON.parse(body);
-                appendData(obj);
+                obj.createdAt = new Date().toISOString();
+                await appendData(obj);
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
                 res.end(JSON.stringify({ success: true }));
             } catch(e) {
-                res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-                res.end(JSON.stringify({ error: 'Yanlış məlumat formatı' }));
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: 'Yanlış məlumat' }));
             }
         });
         return;
     }
 
-    // Ana səhifə - index.html-i göstər
     fs.readFile(path.join(__dirname, 'index.html'), (err, data) => {
         if (err) {
-            res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.writeHead(500);
             return res.end('Server xətası');
         }
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -79,8 +99,9 @@ const server = http.createServer((req, res) => {
     });
 });
 
-server.listen(PORT, () => {
-    console.log(`✅ Server işləyir: http://localhost:${PORT}`);
-    console.log(`📁 Məlumat faylı: ${DATA_FILE}`);
-    console.log(`🌐 Brauzerdə aç: http://localhost:${PORT}`);
+connectDB().then(() => {
+    server.listen(PORT, () => {
+        console.log(`✅ Server: http://localhost:${PORT}`);
+        console.log(`🗄️ MongoDB: excel_satis/satislar`);
+    });
 });

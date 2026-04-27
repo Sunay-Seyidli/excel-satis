@@ -1,9 +1,12 @@
 {
   "name": "excel-satis",
-  "version": "1.0.0",
-  "description": "Sadə satış izləyicisi",
+  "version": "2.0.0",
+  "description": "Excel - Professional Satış İzləyicisi",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
+  },
+  "dependencies": {
+    "mongodb": "^6.3.0"
   }
 }
