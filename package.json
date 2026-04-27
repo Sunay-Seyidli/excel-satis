@@ -1,0 +1,9 @@
+{
+  "name": "excel-satis",
+  "version": "1.0.0",
+  "description": "Sadə satış izləyicisi",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

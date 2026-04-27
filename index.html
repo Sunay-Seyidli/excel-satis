@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Excel - Satış İzləyicisi</title>
+    <style>
+        :root {
+            --bg: #f5f5f7;
+            --card: #ffffff;
+            --text: #1d1d1f;
+            --secondary: #86868b;
+            --accent: #217346;
+            --accent-hover: #185a33;
+            --success: #34c759;
+            --danger: #ff3b30;
+            --warning: #ff9500;
+            --border: #e5e5ea;
+            --radius: 16px;
+            --radius-sm: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.5;
+            padding-bottom: 40px;
+        }
+
+        .header {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            font-weight: 900;
+        }
+
+        .logo-text {
+            font-size: 21px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .badge {
+            background: #e8f5e9;
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--secondary);
+        }
+
+        .section-count {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--secondary);
+            background: #e5e5ea;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        .esya-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            border: 1.5px solid var(--border);
+            transition: all 0.2s ease;
+            animation: cardIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(12px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .esya-card.error {
+            border-color: var(--danger) !important;
+            box-shadow: 0 0 0 4px rgba(255,59,48,0.08) !important;
+            animation: shake 0.5s ease;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .card-number {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--secondary);
+            background: #f5f5f7;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .btn-delete {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: #c7c7cc;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-delete:hover {
+            background: #ff3b3010;
+            color: var(--danger);
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 8px;
+            align-items: end;
+        }
+
+        @media (max-width: 480px) {
+            .input-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-group label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--secondary);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text);
+            background: #fafafa;
+            transition: all 0.2s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(33,115,70,0.1);
+        }
+
+        .input-group input::placeholder {
+            color: #c7c7cc;
+            font-weight: 400;
+            font-size: 13px;
+        }
+
+        .input-group input.error-input {
+            border-color: var(--danger);
+            background: #fff5f5;
+        }
+
+        .qalan-goster {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .qalan-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .qalan-badge.normal { background: #e3f2fd; color: #1565c0; }
+        .qalan-badge.azdir { background: #fff3cd; color: #856404; }
+        .qalan-badge.bitib { background: #e8f5e9; color: #217346; }
+        .qalan-badge.error { background: #ffebee; color: #c62828; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        .btn:active { transform: scale(0.96); }
+
+        .btn-add {
+            background: #f0f0f5;
+            color: var(--accent);
+            margin-top: 10px;
+            width: 100%;
+            padding: 13px;
+        }
+
+        .btn-submit {
+            background: var(--accent);
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: 0 4px 16px rgba(33,115,70,0.25);
+            margin-top: 14px;
+        }
+
+        .btn-submit:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 6px 24px rgba(33,115,70,0.35);
+            transform: translateY(-1px);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Nəticə Overlay */
+        .result-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .result-sheet {
+            background: white;
+            width: 100%;
+            max-width: 640px;
+            border-radius: 24px 24px 0 0;
+            padding: 8px 20px 34px;
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 82vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .sheet-handle {
+            width: 40px;
+            height: 5px;
+            background: #d1d1d6;
+            border-radius: 100px;
+            margin: 8px auto 20px;
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .result-check {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .result-title {
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .result-subtitle {
+            font-size: 13px;
+            color: var(--secondary);
+            margin-top: 4px;
+        }
+
+        .result-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: #f9f9fb;
+            border-radius: var(--radius-sm);
+        }
+
+        .result-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .result-info { flex: 1; min-width: 0; }
+
+        .result-name {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .result-detail {
+            font-size: 11px;
+            color: var(--secondary);
+            margin-top: 4px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .result-detail span {
+            background: #e5e5ea;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .result-price {
+            font-weight: 700;
+            font-size: 17px;
+            color: var(--success);
+            flex-shrink: 0;
+        }
+
+        .result-total {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-radius: var(--radius);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .result-total-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2e7d32;
+        }
+
+        .result-total-value {
+            font-size: 30px;
+            font-weight: 900;
+            color: #1b5e20;
+        }
+
+        .btn-close {
+            background: #f0f0f5;
+            color: var(--text);
+            width: 100%;
+            margin-top: 16px;
+            padding: 14px;
+            font-size: 16px;
+        }
+
+        /* Siyahı */
+        .history-section { margin-top: 32px; }
+
+        .history-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 18px;
+            border-bottom: 1px solid #f5f5f7;
+        }
+
+        .history-item:last-child { border-bottom: none; }
+
+        .history-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 15px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .history-name {
+            font-weight: 600;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-meta {
+            font-size: 11px;
+            color: var(--secondary);
+            display: flex;
+            gap: 8px;
+            margin-top: 3px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .history-meta span {
+            font-weight: 500;
+        }
+
+        .history-right {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .history-price {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--success);
+        }
+
+        .history-date {
+            font-size: 10px;
+            color: #c7c7cc;
+            margin-top: 3px;
+        }
+
+        .empty-state {
+            padding: 50px 20px;
+            text-align: center;
+            color: var(--secondary);
+        }
+
+        .empty-icon { font-size: 52px; margin-bottom: 14px; }
+        .empty-state p { font-size: 14px; font-weight: 500; }
+        .empty-sub { font-size: 12px; color: #c7c7cc; margin-top: 4px; }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1d1d1f;
+            color: white;
+            padding: 13px 26px;
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 999;
+            animation: toastIn 0.4s ease, toastOut 0.4s ease 2.4s forwards;
+            white-space: nowrap;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            pointer-events: none;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(-50%) translateY(0); }
+            to { opacity: 0; transform: translateX(-50%) translateY(-15px); }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d1d6; border-radius: 10px; }
+        
+                /* ============================================ */
+        /*              DARK MODE THEME                 */
+        /* ============================================ */
+
+        body.dark-mode { --bg: #1a1a2e; --card: #16213e; --text: #e4e4e7; --secondary: #a1a1aa; --border: #2d2d44; --shadow-sm: 0 1px 3px rgba(0,0,0,0.2); --shadow: 0 4px 16px rgba(0,0,0,0.3); }
+        body.dark-mode .header { background: rgba(22,33,62,0.85); }
+        body.dark-mode .input-group input { background: #1a1a2e; color: #e4e4e7; border-color: #2d2d44; }
+        body.dark-mode .input-group input:focus { background: #16213e; border-color: #34c759; box-shadow: 0 0 0 4px rgba(52,199,89,0.1); }
+        body.dark-mode .esya-card { background: #16213e; border-color: #2d2d44; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        body.dark-mode .card-number { background: #1a1a2e; color: #a1a1aa; }
+        body.dark-mode .btn-add { background: #2d2d44; color: #34c759; }
+        body.dark-mode .btn-add:hover { background: #3d3d5c; }
+        body.dark-mode .btn-close { background: #2d2d44; color: #e4e4e7; }
+        body.dark-mode .result-sheet { background: #16213e; }
+        body.dark-mode .result-item { background: #1a1a2e; }
+        body.dark-mode .result-total { background: linear-gradient(135deg, #1a3a2a, #0d2818); }
+        body.dark-mode .result-total-label { color: #4ade80; }
+        body.dark-mode .result-total-value { color: #86efac; }
+        body.dark-mode .history-card { background: #16213e; border-color: #2d2d44; }
+        body.dark-mode .history-item { border-bottom-color: #2d2d44; }
+        body.dark-mode .history-item:active { background: #1a1a2e; }
+        body.dark-mode .qalan-badge.normal { background: #1a3a5c; color: #60a5fa; }
+        body.dark-mode .qalan-badge.azdir { background: #3d2e0a; color: #fbbf24; }
+        body.dark-mode .qalan-badge.bitib { background: #1a3a2a; color: #4ade80; }
+        body.dark-mode .qalan-badge.error { background: #3d1a1a; color: #f87171; }
+        body.dark-mode .result-detail span { background: #2d2d44; color: #a1a1aa; }
+        body.dark-mode .section-count { background: #2d2d44; color: #a1a1aa; }
+        body.dark-mode .badge { background: #1a3a2a; color: #4ade80; }
+        body.dark-mode .sheet-handle { background: #3d3d5c; }
+        body.dark-mode .toast { background: #e4e4e7; color: #1a1a2e; }
+        .theme-toggle { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--card); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; -webkit-tap-highlight-color: transparent; user-select: none; }
+        .theme-toggle:hover { background: var(--bg); transform: rotate(15deg); }
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+        
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+            <header class="header">
+        <div class="header-top">
+            <div class="logo">
+                <div class="logo-icon">E</div>
+                <div class="logo-text">Excel</div>
+            </div>
+            <div class="header-actions">
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Temanı dəyiş">🌙</button>
+                <div class="badge" id="totalBadge">0 ₼</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <div class="add-section">
+            <div class="section-header">
+                <span class="section-title">📦 Yeni Satış Əlavə Et</span>
+                <span class="section-count" id="cardCount">1 kart</span>
+            </div>
+            <div id="cardContainer"></div>
+            <button class="btn btn-add" onclick="addCard()">
+                ➕ Yeni Əşya Əlavə Et
+            </button>
+            <button class="btn btn-submit" id="submitBtn" onclick="submitAll()">
+                ✅ Hamısını Hesabla və Saxla
+            </button>
+        </div>
+
+        <div class="history-section">
+            <div class="section-header">
+                <span class="section-title">📋 Bütün Satışlar</span>
+                <span class="section-count" id="historyCount">0 ədəd</span>
+            </div>
+            <div class="history-card" id="historyList">
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <p>Hələ heç bir satış yoxdur</p>
+                    <p class="empty-sub">Yuxarıdan əşya əlavə edərək başlayın</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="result-overlay" id="resultOverlay" onclick="closeResult(event)">
+        <div class="result-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div class="result-header">
+                <div class="result-check">✅</div>
+                <div class="result-title" id="resultTitle"></div>
+                <div class="result-subtitle" id="resultSubtitle"></div>
+            </div>
+            <div class="result-list" id="resultList"></div>
+            <div class="result-total" id="resultTotal"></div>
+            <button class="btn btn-close" onclick="closeResult()">Bağla</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/data';
+        const COLOR_PALETTE = [
+            '#217346','#007AFF','#34C759','#FF9500','#FF2D55',
+            '#AF52DE','#5856D6','#00C7BE','#FF6482','#32D74B',
+            '#FF9F0A','#5AC8FA','#FF375F','#30B0C7','#64D2FF'
+        ];
+
+        let cardCounter = 1;
+        let isSubmitting = false;
+
+        function showToast(message) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2800);
+        }
+
+        function createCardHTML(number) {
+            return `
+                <div class="card-header">
+                    <span class="card-number">ƏŞYA #${number}</span>
+                    <button class="btn-delete" onclick="deleteCard(this)" title="Sil">✕</button>
+                </div>
+                <div class="input-row">
+                    <div class="input-group" style="grid-column: 1 / -1;">
+                        <label>Əşya adı</label>
+                        <input type="text" placeholder="Məs: iPhone 15 Pro" class="inp-name" autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <label>Qiymət (₼)</label>
+                        <input type="number" placeholder="0.00" step="0.01" min="0" class="inp-price" inputmode="decimal" oninput="updateQalan(this)">
+                    </div>
+                    <div class="input-group">
+                        <label>Ümumi say</label>
+                        <input type="number" placeholder="0" min="0" class="inp-stock" inputmode="numeric" oninput="updateQalan(this)">
+                    </div>
+                    <div class="input-group">
+                        <label>Satılan say</label>
+                        <input type="number" placeholder="0" min="0" class="inp-sold" inputmode="numeric" oninput="updateQalan(this)">
+                    </div>
+                </div>
+                <div class="qalan-goster" style="display:none;">
+                    📥 <span class="qalan-badge normal">Qalan: 0 ədəd</span>
+                </div>
+            `;
+        }
+
+        function updateQalan(inputElement) {
+            const card = inputElement.closest('.esya-card');
+            const stockInput = card.querySelector('.inp-stock');
+            const soldInput = card.querySelector('.inp-sold');
+            const qalanGoster = card.querySelector('.qalan-goster');
+            const qalanBadge = card.querySelector('.qalan-badge');
+
+            const stock = parseInt(stockInput.value) || 0;
+            const sold = parseInt(soldInput.value) || 0;
+            const qalan = stock - sold;
+
+            if (!stockInput.value.trim() && !soldInput.value.trim()) {
+                qalanGoster.style.display = 'none';
+                return;
+            }
+
+            qalanGoster.style.display = 'flex';
+
+            if (qalan < 0) {
+                qalanBadge.textContent = '⚠️ Satılan ümumidən çoxdur!';
+                qalanBadge.className = 'qalan-badge error';
+            } else if (qalan === 0 && stock > 0) {
+                qalanBadge.textContent = '✅ Hamısı satıldı!';
+                qalanBadge.className = 'qalan-badge bitib';
+            } else if (qalan > 0) {
+                qalanBadge.textContent = 'Qalan: ' + qalan + ' ədəd';
+                qalanBadge.className = stock > 10 ? 'qalan-badge normal' : 'qalan-badge azdir';
+            }
+        }
+
+        function addCard() {
+            cardCounter++;
+            const container = document.getElementById('cardContainer');
+            const card = document.createElement('div');
+            card.className = 'esya-card';
+            card.id = `card-${cardCounter}`;
+            card.innerHTML = createCardHTML(cardCounter);
+            container.appendChild(card);
+            updateCardCount();
+            updateDeleteButtons();
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                const firstInput = card.querySelector('input');
+                if (firstInput) firstInput.focus();
+            }, 400);
+        }
+
+        function deleteCard(buttonElement) {
+            const allCards = document.querySelectorAll('.esya-card');
+            if (allCards.length <= 1) {
+                showToast('⚠️ Ən az bir əşya kartı olmalıdır');
+                return;
+            }
+            const card = buttonElement.closest('.esya-card');
+            card.style.transition = 'all 0.3s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(50px) scale(0.95)';
+            card.style.maxHeight = card.offsetHeight + 'px';
+            card.style.overflow = 'hidden';
+            setTimeout(() => {
+                card.style.maxHeight = '0';
+                card.style.marginBottom = '0';
+                card.style.padding = '0 18px';
+            }, 150);
+            setTimeout(() => {
+                card.remove();
+                updateCardCount();
+                updateDeleteButtons();
+            }, 450);
+        }
+
+        function updateDeleteButtons() {
+            const cards = document.querySelectorAll('.esya-card');
+            cards.forEach(card => {
+                const btn = card.querySelector('.btn-delete');
+                if (btn) btn.style.display = cards.length > 1 ? 'flex' : 'none';
+            });
+        }
+
+        function updateCardCount() {
+            const count = document.querySelectorAll('.esya-card').length;
+            document.getElementById('cardCount').textContent = count + ' kart';
+        }
+
+        function validateCard(card) {
+            const nameInput = card.querySelector('.inp-name');
+            const priceInput = card.querySelector('.inp-price');
+            const stockInput = card.querySelector('.inp-stock');
+            const soldInput = card.querySelector('.inp-sold');
+
+            const name = nameInput.value.trim();
+            const priceVal = priceInput.value.trim();
+            const stockVal = stockInput.value.trim();
+            const soldVal = soldInput.value.trim();
+
+            if (!name && !priceVal && !stockVal && !soldVal) {
+                return { isEmpty: true };
+            }
+
+            const errors = [];
+            
+            if (!name) { errors.push('name'); nameInput.classList.add('error-input'); }
+            else { nameInput.classList.remove('error-input'); }
+
+            const price = parseFloat(priceVal);
+            if (isNaN(price) || price < 0) { errors.push('price'); priceInput.classList.add('error-input'); }
+            else { priceInput.classList.remove('error-input'); }
+
+            const stock = parseInt(stockVal);
+            if (isNaN(stock) || stock < 0) { errors.push('stock'); stockInput.classList.add('error-input'); }
+            else { stockInput.classList.remove('error-input'); }
+
+            const sold = parseInt(soldVal);
+            if (isNaN(sold) || sold < 0) { errors.push('sold'); soldInput.classList.add('error-input'); }
+            else { soldInput.classList.remove('error-input'); }
+
+            if (!isNaN(stock) && !isNaN(sold) && sold > stock && stock >= 0 && sold >= 0) {
+                errors.push('logic');
+                soldInput.classList.add('error-input');
+                showToast('⚠️ Satılan say ümumi saydan çox ola bilməz!');
+            }
+
+            if (errors.length > 0) return { hasError: true, errors };
+
+            const qalan = stock - sold;
+            const profit = parseFloat((sold * price).toFixed(2));
+
+            return {
+                isValid: true,
+                data: { ad: name, qiymet: price, say: stock, satilan: sold, qalan: qalan, qazanc: profit, tarix: new Date().toLocaleString('az') }
+            };
+        }
+
+        async function submitAll() {
+            if (isSubmitting) return;
+
+            const cards = document.querySelectorAll('.esya-card');
+            const results = [];
+            let hasError = false;
+            let filledCards = 0;
+
+            cards.forEach(card => {
+                card.classList.remove('error');
+                card.querySelectorAll('.error-input').forEach(inp => inp.classList.remove('error-input'));
+            });
+
+            cards.forEach(card => {
+                const result = validateCard(card);
+                if (result.isEmpty) return;
+                filledCards++;
+                if (result.hasError) { card.classList.add('error'); hasError = true; return; }
+                if (result.isValid) results.push(result.data);
+            });
+
+            if (filledCards === 0) { showToast('ℹ️ Zəhmət olmasa ən az bir əşya doldurun'); return; }
+            if (hasError) {
+                showToast('⚠️ Qırmızı xanaları düzgün doldurun');
+                setTimeout(() => {
+                    cards.forEach(card => {
+                        card.classList.remove('error');
+                        card.querySelectorAll('.error-input').forEach(inp => inp.classList.remove('error-input'));
+                    });
+                }, 3000);
+                return;
+            }
+
+            isSubmitting = true;
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner"></span> Hesablanır...';
+            submitBtn.disabled = true;
+
+            for (const item of results) {
+                try {
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(item)
+                    });
+                } catch(e) {
+                    showToast('⚠️ Serverə qoşulmaq mümkün olmadı');
+                    console.error(e);
+                }
+            }
+
+            showResult(results);
+
+            document.getElementById('cardContainer').innerHTML = '';
+            cardCounter = 1;
+            const newCard = document.createElement('div');
+            newCard.className = 'esya-card';
+            newCard.id = 'card-1';
+            newCard.innerHTML = createCardHTML(1);
+            document.getElementById('cardContainer').appendChild(newCard);
+            updateCardCount();
+            updateDeleteButtons();
+
+            await loadHistory();
+
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            isSubmitting = false;
+            showToast('✅ Uğurla əlavə edildi!');
+        }
+
+        function showResult(results) {
+            const totalProfit = results.reduce((sum, r) => sum + r.qazanc, 0);
+            document.getElementById('resultTitle').textContent = `${results.length} əşya əlavə edildi`;
+            document.getElementById('resultSubtitle').textContent = 'Bütün satış məlumatları uğurla qeydə alındı';
+            document.getElementById('resultList').innerHTML = results.map((r, i) => `
+                <div class="result-item">
+                    <div class="result-icon" style="background:${COLOR_PALETTE[i % COLOR_PALETTE.length]}">${r.ad.charAt(0).toUpperCase()}</div>
+                    <div class="result-info">
+                        <div class="result-name">${r.ad}</div>
+                        <div class="result-detail">
+                            <span>🏷 ${r.qiymet}₼</span>
+                            <span>📦 Ümumi: ${r.say}</span>
+                            <span>🛒 Satılan: ${r.satilan}</span>
+                            ${r.qalan === 0 ? '<span>✅ Bitib</span>' : `<span>📥 Qalan: ${r.qalan}</span>`}
+                        </div>
+                    </div>
+                    <div class="result-price">+${r.qazanc.toFixed(2)}₼</div>
+                </div>
+            `).join('');
+            document.getElementById('resultTotal').innerHTML = `
+                <span class="result-total-label">💰 Cəmi Qazanc</span>
+                <span class="result-total-value">${totalProfit.toFixed(2)} ₼</span>
+            `;
+            document.getElementById('resultOverlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeResult(event) {
+            if (event && event.target !== document.getElementById('resultOverlay')) return;
+            document.getElementById('resultOverlay').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        async function loadHistory() {
+            let data = [];
+            try {
+                const res = await fetch(API_URL);
+                data = await res.json();
+            } catch(e) {
+                console.log('Serverə qoşulmaq mümkün olmadı');
+            }
+
+            const container = document.getElementById('historyList');
+            const historyCount = document.getElementById('historyCount');
+            historyCount.textContent = data.length + ' ədəd';
+
+            if (!data.length) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>Hələ heç bir satış yoxdur</p>
+                        <p class="empty-sub">Yuxarıdan əşya əlavə edərək başlayın</p>
+                    </div>`;
+                document.getElementById('totalBadge').textContent = '0 ₼';
+                return;
+            }
+
+            const total = data.reduce((s, i) => s + (i.qazanc || 0), 0);
+            document.getElementById('totalBadge').textContent = total.toFixed(0) + ' ₼';
+
+            const reversed = [...data].reverse();
+            container.innerHTML = reversed.map((item, idx) => `
+                <div class="history-item">
+                    <div class="history-left">
+                        <div class="history-avatar" style="background:${COLOR_PALETTE[idx % COLOR_PALETTE.length]}">
+                            ${(item.ad || '?').charAt(0).toUpperCase()}
+                        </div>
+                        <div class="history-info">
+                            <div class="history-name">${item.ad || 'Bilinməyən'}</div>
+                            <div class="history-meta">
+                                <span>🏷 ${item.qiymet || 0}₼</span>
+                                <span>📦 ${item.say || 0}</span>
+                                <span>🛒 ${item.satilan || 0}</span>
+                                ${item.qalan !== undefined ? 
+                                    (item.qalan === 0 ? '<span class="qalan-badge bitib">✅ Bitib</span>' : 
+                                     `<span class="qalan-badge normal">📥 Qalan: ${item.qalan}</span>`) 
+                                    : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="history-right">
+                        <div class="history-price">+${(item.qazanc || 0).toFixed(2)}₼</div>
+                        <div class="history-date">${item.tarix || ''}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                const activeEl = document.activeElement;
+                if (activeEl && activeEl.closest('.esya-card')) {
+                    const lastCard = document.querySelectorAll('.esya-card');
+                    const last = lastCard[lastCard.length - 1];
+                    if (last.contains(activeEl)) {
+                        e.preventDefault();
+                        addCard();
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const overlay = document.getElementById('resultOverlay');
+                if (overlay.style.display === 'flex') closeResult();
+            }
+        });
+
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('error-input')) {
+                e.target.classList.remove('error-input');
+                const card = e.target.closest('.esya-card');
+                if (card && !card.querySelectorAll('.error-input').length) {
+                    card.classList.remove('error');
+                }
+            }
+        });
+
+        function init() {
+            const container = document.getElementById('cardContainer');
+            const card = document.createElement('div');
+            card.className = 'esya-card';
+            card.id = 'card-1';
+            card.innerHTML = createCardHTML(1);
+            container.appendChild(card);
+            updateCardCount();
+            updateDeleteButtons();
+            loadHistory();
+        }
+
+        init();
+    </script>
+</body>
+</html>
